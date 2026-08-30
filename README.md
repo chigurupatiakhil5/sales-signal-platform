@@ -160,8 +160,34 @@ Open the URL Vite prints (default `http://localhost:5173`).
 
 Click **Sync from HubSpot** in the dashboard header (or `curl -X POST
 http://127.0.0.1:8010/sync`). This pulls every deal, records a snapshot, and
-runs Claude classification on each one - the pipeline board populates right
+runs Groq classification on each one - the pipeline board populates right
 after.
+
+## Deployment
+
+Backend on Render, frontend on Vercel.
+
+**Backend (Render):**
+1. New -> Blueprint, point it at this repo. `render.yaml` at the project
+   root configures the service automatically (Python 3.11.9, build/start
+   commands, health check).
+2. Fill in the env vars Render prompts for (`DATABASE_URL`,
+   `HUBSPOT_API_KEY`, `GROQ_API_KEY`, `GROQ_MODEL`, `CORS_ORIGINS`) - same
+   values as your local `.env`, except `CORS_ORIGINS` should be your
+   eventual Vercel URL instead of `localhost:5173` (you can update this
+   after the frontend is deployed and get its real URL).
+3. Deploy. Note the resulting `https://<name>.onrender.com` URL.
+
+**Frontend (Vercel):**
+1. New Project, import this repo, set **Root Directory** to `frontend`
+   (framework preset Vite should be auto-detected).
+2. Add env var `VITE_API_URL` = your Render backend URL from above.
+3. Deploy.
+4. Go back to Render and update `CORS_ORIGINS` to the real Vercel URL, then
+   redeploy the backend so it accepts requests from the deployed frontend.
+
+Render's free tier spins down after ~15 minutes of inactivity - the first
+request after a period of idleness can take 30-60s to wake back up.
 
 ## Notes on the AI signal
 
